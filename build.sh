@@ -1,6 +1,6 @@
 #!/bin/bash
-VERSION=0.3.0
-NAME="Cursed Shaderpack"
+VERSION=0.1.0
+NAME="Example Shader"
 
 # clean old files
 if [ -f "$NAME $VERSION.zip" ]; then

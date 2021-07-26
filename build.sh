@@ -3,32 +3,39 @@ VERSION=0.1.0
 NAME="Example Shader"
 
 # clean old files
-if [ -f "$NAME $VERSION.zip" ]; then
-    rm "./$NAME $VERSION.zip"
+if [ -f ".build/$NAME $VERSION.zip" ]; then
+    rm ".build/$NAME $VERSION.zip"
 fi
 
+if [ -f ".tmp" ]; then
+	rm -rf .tmp
+fi
+
+# make .build directory
 if [ ! -f ".build" ]; then
 	mkdir .build
 fi
 
+# make .tmp directory
+mkdir .tmp
+
 # copy build files
-if [ ! -f "LICENSE" ]; then
-	cp LICENSE .build
+if [ ! -f ".tmp/LICENSE" ]; then
+	cp LICENSE .tmp
 fi
 
-if [ ! -f "README.md" ]; then
-	cp README.md .build
+if [ ! -f ".tmp/README.md" ]; then
+	cp README.md .tmp
 fi
 
-cp -r shaders .build
+cp -r shaders .tmp
+
+cd .tmp
 
 # zip shader
-zip -r "$NAME $VERSION.zip" .build/*
+zip "../.build/$NAME $VERSION.zip" -r *
 
-# clean build dir
-rm -rf .build
+cd ..
 
-# put zip into build dir
-mkdir .build
-cp "$NAME $VERSION.zip" .build
-rm "$NAME $VERSION.zip"
+# clean .tmp dir
+rm -rf .tmp

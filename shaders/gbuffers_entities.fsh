@@ -5,5 +5,6 @@
 #define LIGHTMAP
 #define TEXTURED
 #define ENTITY_COLOR
+#define FOG
 
 #include "/lib/base.glsl"

@@ -1,9 +1,3 @@
-// Options
-#ifdef FOG
-#define FOG_COVERAGE 0.8 // [0, 1]
-#define FLUID_FOG_DENSITY 0.175 // [0, 1]
-#endif
-
 #ifdef VERT
 
 
@@ -72,6 +66,12 @@ void main() {
 
 #ifdef FRAG
 
+
+// Options
+#ifdef FOG
+#define FOG_COVERAGE 0.8 // [0, 1]
+#define FLUID_FOG_DENSITY 0.175 // [0, 1]
+#endif
 
 #ifdef LIGHTMAP
 uniform sampler2D lightmap;

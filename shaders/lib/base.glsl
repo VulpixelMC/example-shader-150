@@ -1,7 +1,7 @@
 // Options
 #ifdef FOG
 #define FOG_COVERAGE 0.8 // [0, 1]
-#define FLUID_FOG_COVERAGE 0.2 // [0, 1]
+#define FLUID_FOG_DENSITY 0.175 // [0, 1]
 #endif
 
 #ifdef VERT
@@ -42,7 +42,9 @@ void render() {
 	// Use flat for flat "blocks" or world space normal for solid blocks.
 	normal = (mc_Entity.x == 4) ? vec3(0, 1, 0) : (gbufferModelViewInverse * vec4(normal, 0)).xyz;
 
+	// https://github.com/XorDev/XorDevs-Default-Shaderpack/blob/c13319fb7ca1a178915fba3b18dee47c54903cc3/shaders/gbuffers_textured.vsh#L42
 	// Calculate simple lighting
+	// NOTE: This is as close to vanilla as XorDev can get it. It's not perfect, but it's close.
 	float light = .8-.25*abs(normal.x*.9+normal.z*.3)+normal.y*.2;
 
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
@@ -119,7 +121,7 @@ void render() {
 	// https://github.com/XorDev/XorDevs-Default-Shaderpack/blob/c13319fb7ca1a178915fba3b18dee47c54903cc3/shaders/gbuffers_textured.fsh#L42
 	float fogStart = far * FOG_COVERAGE;
 	float fogEnd = far;
-	float fog = (isEyeInWater > 0) ? 1 - exp(-vertDist * FLUID_FOG_COVERAGE) : smoothstep(fogStart, fogEnd, vertDist);
+	float fog = (isEyeInWater > 0) ? 1 - exp(-vertDist * FLUID_FOG_DENSITY) : smoothstep(fogStart, fogEnd, vertDist);
 	color.rgb = mix(color.rgb, fogColor.rgb, fog);
 	#endif
 

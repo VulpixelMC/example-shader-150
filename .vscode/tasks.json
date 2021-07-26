@@ -5,7 +5,12 @@
 			"label": "build",
 			"type": "shell",
 			"command": "./build.sh",
-			"problemMatcher": []
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "silent",
+				"showReuseMessage": false,
+				"clear": true
+			}
 		}
 	]
 }

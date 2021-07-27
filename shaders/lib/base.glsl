@@ -161,11 +161,13 @@ void render() {
 	// calculate fog
 	fog = smoothstep(fogStart, fogEnd, vertDist);
 	color.rgb = mix(color.rgb, fogColor.rgb, fog);
+	#ifdef DEBUG
 	if (gl_FragCoord.x >= 1499 && gl_FragCoord.y >= 800) {
 		color.rgb = vec3(fogStart / 255);
 	} else if (gl_FragCoord.x >= 1499 && gl_FragCoord.y >= 700 && gl_FragCoord.y <= 800) {
 		color.rgb = vec3(fogEnd / 255);
 	}
+	#endif
 	#endif
 
 	/* DRAWBUFFERS:04 */

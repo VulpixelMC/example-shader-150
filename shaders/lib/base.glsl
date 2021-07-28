@@ -1,21 +1,15 @@
 #ifdef VERT
 
 
-#ifdef TEXTURED
-attribute vec2 mc_Entity;
-#endif
-
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 
-#ifdef LIGHTMAP
+in vec2 mc_Entity;
+
 out vec2 lmcoord;
-#endif
 out vec2 texcoord;
 out vec4 glcolor;
-#ifdef FOG
 out float vertDist;
-#endif
 
 void render() {
 	#ifdef FOG
@@ -37,7 +31,7 @@ void render() {
 	// https://github.com/XorDev/XorDevs-Default-Shaderpack/blob/c13319fb7ca1a178915fba3b18dee47c54903cc3/shaders/gbuffers_textured.vsh#L42
 	// Calculate simple lighting
 	// NOTE: This is as close to vanilla as XorDev can get it. It's not perfect, but it's close.
-	float light = .8-.25*abs(normal.x*.9+normal.z*.3)+normal.y*.2;
+	float light = 0.8 - 0.25 * abs(normal.x * 0.9 + normal.z * 0.3) + normal.y * 0.2;
 
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	#endif
@@ -66,101 +60,105 @@ void main() {
 
 
 // Options
-#ifdef FOG
-#define FOG_DENSITY 0.8 // [0, 1]
+#define FOG_DENSITY 0.75 // [0, 1]
 #define FLUID_FOG_DENSITY 0.5 // [0, 1]
-#endif
 
 // Includes
-#ifdef FOG
 #include "/lib/fog.glsl"
-#endif
 
 // Constants
-#ifdef FOG
 /*
-const bool gaux1Clear = false;
+// const bool gaux1Clear = false;
 */
-#endif
 
 // Uniforms
-#ifdef LIGHTMAP
 uniform sampler2D lightmap;
-#endif
 uniform float blindness;
-#ifdef TEXTURED
 uniform sampler2D tex;
-#endif
-#ifdef ENTITY_COLOR
 uniform vec4 entityColor;
-#endif
-#ifdef FOG
 uniform vec3 fogColor;
+uniform vec3 skyColor;
 uniform float far;
 uniform int isEyeInWater;
-// uniform float frameTime; // how long it took for the last frame to render
-// uniform sampler2D gaux1;
-#endif
 
-#ifdef LIGHTMAP
 in vec2 lmcoord;
-#endif
 in vec2 texcoord;
 in vec4 glcolor;
-#ifdef FOG
 in float vertDist;
-#endif
 
 void render() {
+	vec4 color;
 	#ifdef TEXTURED
-	vec4 color = texture(tex, texcoord) * glcolor;
+	color = texture(tex, texcoord) * glcolor;
 	#else
-	vec4 color = glcolor;
+	color = glcolor;
 	#endif
-	// https://github.com/XorDev/XorDevs-Default-Shaderpack/blob/c13319fb7ca1a178915fba3b18dee47c54903cc3/shaders/gbuffers_textured.fsh#L35
+
+	vec3 light;
+	float blindAmount = 1 - blindness; // what to multiply the light by
+
+	// apply blindness effect
+	#ifdef BLINDNESS
+	// calculate lighting
 	#ifdef LIGHTMAP
+	// https://github.com/XorDev/XorDevs-Default-Shaderpack/blob/c13319fb7ca1a178915fba3b18dee47c54903cc3/shaders/gbuffers_textured.fsh#L35
 	// combine the lightmap with blindness
-	vec3 light = (1 - blindness) * texture(lightmap, lmcoord).rgb;
-	color *= vec4(light, 1);
+	light = (blindAmount) * texture(lightmap, lmcoord).rgb;
+	#else
+	light = vec3(blindAmount);
 	#endif
+	#else
+	// calculate lighting
+	light = vec3(blindAmount);
+	#endif
+
+	color *= vec4(light, 1);
+
 	// apply mob entity flashes
 	#ifdef ENTITY_COLOR
 	color.rgb = mix(color.rgb, entityColor.rgb, entityColor.a);
 	#endif
-	#ifdef FOG
-	// https://github.com/XorDev/XorDevs-Default-Shaderpack/blob/c13319fb7ca1a178915fba3b18dee47c54903cc3/shaders/gbuffers_textured.fsh#L42
+
 	// render fog
+	#ifdef FOG
 	float fog;
 	float fogStart;
 	float fogEnd;
-	// float submergeTime = texture(gaux1, texcoord).r;
-	if (isEyeInWater == 0) { // normal fog
-		// if (submergeTime > 0) {
-		// 	submergeTime = 0;
-		// }
+	float fogVisibility;
 
-		fogStart = far * FOG_DENSITY;
-		fogEnd = far;
-	} else { // underwater fog
-		// increment submerge time by the frame time
-		// submergeTime = submergeTime + frameTime;
+	switch (isEyeInWater) {
+		case 0: // normal fog
+			fogStart = far * FOG_DENSITY;
+			fogEnd = far;
+			break;
+		case 1: // underwater fog
+			// calculate fog visibility
+			fogVisibility = 192 * 0.9;
 
-		// calculate fog visibility
-		float fogVisibility = 192;
-		// fogVisibility *= max(0.25, underwaterVisibility(submergeTime));
-		fogVisibility *= 0.9;
+			// fog properties
+			fogStart = -8;
+			fogEnd = fogVisibility * FLUID_FOG_DENSITY;
+			break;
+		case 2: // lava fog
+			// calculate fog visibility
+			fogVisibility = 2 * 0.5;
 
-		// if (isSwampBiome) { // swamp fog
-		// 	fogVisibility *= 0.85;
-		// }
-
-		// fog properties
-		fogStart = -8;
-		fogEnd = fogVisibility * FLUID_FOG_DENSITY;
+			// fog properties
+			fogStart = -8;
+			fogEnd = fogVisibility * FLUID_FOG_DENSITY;
+			break;
 	}
+
 	// calculate fog
 	fog = smoothstep(fogStart, fogEnd, vertDist);
+
+	// mix fog color with sky color
+	if (isEyeInWater == 0) {
+		color.rgb = mix(color.rgb, skyColor.rgb, fog);
+	}
 	color.rgb = mix(color.rgb, fogColor.rgb, fog);
+
+	// squares for debugging
 	#ifdef DEBUG
 	if (gl_FragCoord.x >= 1499 && gl_FragCoord.y >= 800) {
 		color.rgb = vec3(fogStart / 255);
@@ -170,16 +168,8 @@ void render() {
 	#endif
 	#endif
 
-	/* DRAWBUFFERS:04 */
-	#ifdef LIGHTMAP
+	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = color; //gcolor
-	#else
-	// https://github.com/XorDev/XorDevs-Default-Shaderpack/blob/c13319fb7ca1a178915fba3b18dee47c54903cc3/shaders/gbuffers_basic.fsh#L34
-	gl_FragData[0] = color * vec4(vec3(1 - blindness), 1); //gcolor
-	#endif
-	// #ifdef FOG
-	// gl_FragData[1] = vec4(submergeTime, 0, 0, 0);
-	// #endif
 }
 
 #ifdef DEFAULT

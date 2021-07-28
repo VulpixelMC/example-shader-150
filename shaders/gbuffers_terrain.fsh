@@ -5,5 +5,6 @@
 #define TEXTURED
 #define LIGHTMAP
 #define FOG
+#define BLINDNESS
 
 #include "/lib/base.glsl"

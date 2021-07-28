@@ -3,5 +3,6 @@
 #define FRAG
 #define DEFAULT
 #define TEXTURED
+#define BLINDNESS
 
 #include "/lib/base.glsl"

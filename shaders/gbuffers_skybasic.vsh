@@ -3,4 +3,4 @@
 #define VERT
 #define DEFAULT
 
-#include "/lib/sky.glsl"
+#include "/program/sky.glsl"

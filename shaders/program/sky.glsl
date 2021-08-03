@@ -1,8 +1,11 @@
-#ifdef FRAG
+#if defined(FRAG)
 
 
+// Includes
 #include "/lib/fog.glsl"
+#include "/lib/common.glsl"
 
+// Uniforms
 uniform float viewHeight;
 uniform float viewWidth;
 uniform mat4 gbufferModelView;
@@ -16,12 +19,11 @@ in vec4 starData; //rgb = star color, a = flag for whether or not this pixel is 
 vec3 calcSkyColor(vec3 pos) {
 	float upDot = dot(pos, gbufferModelView[1].xyz); //not much, what's up with you?
 	float fog = fogify(max(upDot, 0.0), 0.25);
-	vec3 color;
-	color = mix(skyColor, fogColor, fog);
+	vec3 color = mix(skyColor, fogColor, fog);
 	return color;
 }
 
-void render() {
+RenderResult render() {
 	vec3 color;
 	if (starData.a > 0.5) {
 		color = starData.rgb;
@@ -31,13 +33,14 @@ void render() {
 		color = calcSkyColor(normalize(pos.xyz)) * (1 - blindness);
 	}
 
-/* DRAWBUFFERS:0 */
-	gl_FragData[0] = vec4(color, 1.0); //gcolor
+	RenderResult res = RenderResult(vec4(color, 1));
+	return res;
 }
 
-#ifdef DEFAULT
+#if defined(DEFAULT)
 void main() {
-	render();
+	RenderResult res = render();
+	setColor(res.color);
 }
 #endif
 
@@ -46,7 +49,7 @@ void main() {
 
 
 
-#ifdef VERT
+#if defined(VERT)
 
 
 out vec4 starData; //rgb = star color, a = flag for whether or not this pixel is a star.
@@ -56,7 +59,7 @@ void render() {
 	starData = vec4(gl_Color.rgb, float(gl_Color.r == gl_Color.g && gl_Color.g == gl_Color.b && gl_Color.r > 0.0));
 }
 
-#ifdef DEFAULT
+#if defined(DEFAULT)
 void main() {
 	render();
 }

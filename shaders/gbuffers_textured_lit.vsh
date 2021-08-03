@@ -6,4 +6,4 @@
 #define LIGHTMAP
 #define FOG
 
-#include "/lib/base.glsl"
+#include "/program/base.glsl"

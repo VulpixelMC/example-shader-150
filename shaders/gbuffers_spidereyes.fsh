@@ -4,4 +4,4 @@
 #define DEFAULT
 #define TEXTURED
 
-#include "/lib/base.glsl"
+#include "/program/base.glsl"

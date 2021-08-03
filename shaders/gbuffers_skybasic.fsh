@@ -3,4 +3,4 @@
 #define FRAG
 #define DEFAULT
 
-#include "/lib/sky.glsl"
+#include "/program/sky.glsl"

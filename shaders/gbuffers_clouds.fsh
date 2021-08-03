@@ -4,5 +4,6 @@
 #define DEFAULT
 #define TEXTURED
 #define BLINDNESS
+#define FOG
 
-#include "/lib/base.glsl"
+#include "/program/base.glsl"

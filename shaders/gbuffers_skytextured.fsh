@@ -5,4 +5,4 @@
 #define TEXTURED
 #define BLINDNESS
 
-#include "/lib/base.glsl"
+#include "/program/base.glsl"

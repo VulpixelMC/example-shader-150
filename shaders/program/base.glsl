@@ -80,8 +80,6 @@ void main() {
 
 
 // Options
-// #define FOG_DENSITY 0.7 // [0, 1]
-// #define FLUID_FOG_DENSITY 0.5 // [0, 1]
 // #define DEBUG
 
 // Preprocessors
@@ -91,20 +89,13 @@ void main() {
 #include "/lib/common.glsl"
 
 // Constants
-/*
-// const bool gaux1Clear = false;
-*/
 
 // Uniforms
 uniform sampler2D lightmap;
-uniform float blindness;
-// TODO: change this to gtexture in iris 1.1.2
 uniform sampler2D gtexture;
 uniform vec4 entityColor;
 uniform vec3 fogColor;
 uniform vec3 skyColor;
-// uniform float fogStart;
-// uniform float fogEnd;
 uniform float far;
 uniform int isEyeInWater;
 
@@ -123,25 +114,17 @@ RenderResult render() {
 	#endif
 
 	vec3 light;
-	float brightness; // how bright the light is
-
-	// apply blindness effect
-	#if defined(BLINDNESS)
-	brightness = 1 - blindness;
-	#else
-	brightness = 1;
-	#endif
 
 	// calculate lighting
 	#if defined(LIGHTMAP)
 	// https://github.com/XorDev/XorDevs-Default-Shaderpack/blob/c13319fb7ca1a178915fba3b18dee47c54903cc3/shaders/gbuffers_textured.fsh#L35
 	// combine the lightmap with blindness
-	light = brightness * texture(lightmap, lmcoord).rgb;
+	light = texture(lightmap, lmcoord).rgb;
 	#else
 	light = vec3(1);
 	#endif
 
-	color *= vec4(light, 1);
+	color.rgb *= light;
 
 	// apply mob entity flashes
 	#if defined(ENTITY_COLOR)
@@ -154,21 +137,11 @@ RenderResult render() {
 	// calculate fog
 	float fog = smoothstep(gl_Fog.start, gl_Fog.end, vertDist);
 
-	// Note: I disabled this in favor of vanilla's fog color.
-	// mix fog color with sky color
-	// if (isEyeInWater == 0) {
-	// 	color.rgb = mix(color.rgb, skyColor.rgb, fog);
-	// }
-	// color.rgb = mix(color.rgb, fogColor.rgb, fog);
 	color.rgb = mix(color.rgb, fogColor.rgb, fog);
 
 	// squares for debugging
 	#ifdef DEBUG
-	if (gl_FragCoord.x >= 1499 && gl_FragCoord.y >= 800) {
-		color.rgb = vec3(gl_Fog.start);
-	} else if (gl_FragCoord.x >= 1499 && gl_FragCoord.y >= 700 && gl_FragCoord.y <= 800) {
-		color.rgb = vec3(gl_Fog.end);
-	}
+	color.rgb = vec3(blindness);
 	#endif
 	#endif
 
